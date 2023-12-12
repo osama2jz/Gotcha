@@ -1,10 +1,4 @@
-import {
-  Box,
-  Checkbox,
-  Flex,
-  SimpleGrid,
-  Stack
-} from "@mantine/core";
+import { Box, Checkbox, Flex, SimpleGrid, Stack } from "@mantine/core";
 import { DateInput, TimeInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { CircleF, GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
@@ -24,9 +18,8 @@ const Drop = () => {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const [center, setCenter] = useState({ lat: 30, lng: 70 });
-  const [radius, setRadius] = useState(300);
   const [markers, setMarkers] = useState([]);
-  const [parks, setParks] = useState([]);
+  const [types, setTypes] = useState([]);
 
   // Use the Geolocation API to get the user's location by default
   useEffect(() => {
@@ -40,102 +33,73 @@ const Drop = () => {
     }
   }, []);
 
-  const { status, data: allParks } = useQuery(
-    "fetchParks",
+  const { status } = useQuery(
+    "fetchOffers",
     () => {
-      return axios.get(backendUrl + "/parks", {});
+      return axios.get(backendUrl + "/offerTypes/listAll", {
+        // headers: {
+        //   authorization: `${user.accessToken}`,
+        // },
+      });
     },
     {
       onSuccess: (res) => {
         const data = res.data.data;
         let newData = data.map((item) => {
-          return { value: item._id, label: item.name };
+          return { value: item._id, label: item.Name };
         });
-        setParks(newData);
+        setTypes(newData)
       },
     }
   );
 
   const form = useForm({
     initialValues: {
-      locations: [],
-      park: "",
-      expirationDate: "",
-      expirationTime: "",
-      dropName: "",
-      dropType: "",
-      videoURL: "",
-      dropCoins: 0,
-      noOfOffers: "",
-      question: "",
-      answer1: "",
-      answer2: "",
-      answer3: "",
-      answer4: "",
-      isCorrect1: false,
-      isCorrect2: false,
-      isCorrect3: false,
-      isCorrect4: false,
+      area: 300,
+      Type: "",
+      noOfOffers: 0,
+      Name: "",
+      Value: "",
+      Link: "",
+      ExpireDate: "",
+      ExpireTime: "",
+      Locations: [],
     },
 
     validate: {
-      dropName: (value) => (value?.length > 0 ? null : "Enter Drop Name"),
-      dropType: (value) => (value?.length > 0 ? null : "Enter Drop Type"),
-      dropCoins: (value) => (value > 0 ? null : "Enter Drop Coins"),
-      videoURL: (value, values) =>
-        values.dropType === "Quiz" || value?.length > 0
-          ? null
-          : "Enter Video Url",
-      question: (value, values) =>
-        values.dropType === "Video" || value?.length > 0
-          ? null
-          : "Enter Quiz Question",
-      answer1: (value, values) =>
-        values.dropType === "Video" || value?.length > 0
-          ? null
-          : "Enter option",
-      answer2: (value, values) =>
-        values.dropType === "Video" || value?.length > 0
-          ? null
-          : "Enter option",
-      answer3: (value, values) =>
-        values.dropType === "Video" || value?.length > 0
-          ? null
-          : "Enter option",
-      answer4: (value, values) =>
-        values.dropType === "Video" || value?.length > 0
-          ? null
-          : "Enter option",
-      park: (value) => (value?.length > 0 ? null : "Select Park"),
-      expirationDate: (value) => (value ? null : "Select Expiration Date"),
-      expirationTime: (value) =>
+      area: (value) => (value > 0 ? null : "Enter Area"),
+      Type: (value) => (value?.length > 0 ? null : "Enter Drop Type"),
+      noOfOffers: (value) => (value > 0 ? null : "Enter number of offers"),
+      Name: (value) => (value?.length > 0 ? null : "Enter Offer Name"),
+      Value: (value) => (value > 0 ? null : "Enter Value"),
+      ExpireDate: (value) => (value ? null : "Select Expiration Date"),
+      ExpireTime: (value) =>
         value?.length > 0 ? null : "Select Expiration Time",
     },
   });
 
   const handleAddDrop = useMutation(
     async (values) => {
-      values.quiz = {
-        question: values.question,
-        answers: [
-          { answer: values.answer1, isCorrect: values.isCorrect1 },
-          { answer: values.answer2, isCorrect: values.isCorrect2 },
-          { answer: values.answer3, isCorrect: values.isCorrect3 },
-          { answer: values.answer4, isCorrect: values.isCorrect4 },
-        ],
-      };
-      values.locations = values.locations.map((obj) => Object.values(obj));
-      return axios.post(backendUrl + `/drops`, values, {
-        headers: {
-          authorization: `${user.accessToken}`,
-        },
+      let formData = new FormData();
+      formData.append('offeredBy', user.id);
+      formData.append('Type', values.Type);
+      formData.append('Value', values.Value);
+      formData.append('Link', values.Link);
+      formData.append('Name', values.Name);
+      formData.append('Locations', JSON.stringify(values.Locations));
+      formData.append('Expire', values.ExpireDate);
+      
+      // values.locations = values.locations.map((obj) => Object.values(obj));
+      return axios.post(backendUrl + `/offers/add`, formData, {
+        // headers: {
+        //   authorization: `${user.accessToken}`,
+        // },
       });
     },
     {
       onSuccess: (response) => {
         toast.success(response.data.message);
         form.reset();
-        navigate("/drop");
       },
       onError: (err) => {
         toast.error(err.response.data.message);
@@ -143,16 +107,6 @@ const Drop = () => {
     }
   );
 
-  useEffect(() => {
-    let selectedPark = allParks?.data?.data?.find(
-      (obj) => obj._id === form.values.park
-    );
-    setCenter({
-      lat: selectedPark?.centerCoordinates.coordinates[1],
-      lng: selectedPark?.centerCoordinates.coordinates[0],
-    });
-    setRadius(selectedPark?.radius);
-  }, [form.values.park]);
 
   const generateOffers = () => {
     // An array to store the generated points
@@ -166,7 +120,7 @@ const Drop = () => {
       // Generate a random angle in radians
       var angle = Math.random() * Math.PI * 2;
       // Generate a random distance from the center in meters
-      var distance = Math.random() * radius;
+      var distance = Math.random() * form.values.area;
       // Calculate the offset in latitude and longitude using the haversine formula
       var latOffset = (distance * Math.cos(angle)) / EARTH_RADIUS / DEG_TO_RAD;
       var lngOffset =
@@ -183,21 +137,21 @@ const Drop = () => {
     }
     // Return the array of points
     setMarkers(points);
-    form.setFieldValue("locations", points);
+    form.setFieldValue("Locations", points);
   };
 
   return (
-    <Box bg="white" style={{borderRadius:'5px'}}>
+    <Box bg="white" style={{ borderRadius: "5px" }}>
       <PageHeader title={"Droping Offers"} />
 
-      <Flex gap="lg" p='md' wrap={{ base: "wrap", lg: "nowrap" }}>
+      <Flex gap="lg" p="md" wrap={{ base: "wrap", lg: "nowrap" }}>
         <Stack w={{ base: "100%", lg: "75%" }}>
           <LoadScript
             id="script-loader"
             libraries={["places"]}
             googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAP_KEY}
           >
-            <Box style={{ minHeight: "500px" }}>
+            <Box style={{ minHeight: "600px" }}>
               <GoogleMap
                 mapContainerStyle={{
                   width: "100%",
@@ -226,7 +180,7 @@ const Drop = () => {
                 {center?.lat && (
                   <CircleF
                     center={center}
-                    radius={parseInt(radius)}
+                    radius={parseInt(form.values.area)}
                     options={{
                       fillColor: "blue",
                       fillOpacity: 0.2,
@@ -245,17 +199,18 @@ const Drop = () => {
         >
           <Stack>
             <InputField
-              label={"Drop Name"}
+              label={"Area (Radius)"}
               required
+              type="number"
               form={form}
-              validateName="dropName"
+              validateName="area"
             />
             <SelectMenu
-              label={"Select Park"}
+              label={"Offer Type"}
               required
+              data={types}
               form={form}
-              data={parks}
-              validateName="park"
+              validateName="Type"
             />
             <InputField
               label={"Number of Offers"}
@@ -264,74 +219,22 @@ const Drop = () => {
               validateName={"noOfOffers"}
             />
             <InputField
-              label={"Drop Coins"}
+              label={"Offer Name"}
               required
               form={form}
-              validateName={"dropCoins"}
+              validateName="Name"
             />
-            <SelectMenu
-              label={"Offer Type"}
+            <InputField
+              label={"Drop Value"}
               required
-              data={[
-                { label: "Video", value: "Video" },
-                { label: "Quiz", value: "Quiz" },
-              ]}
               form={form}
-              validateName="dropType"
+              validateName={"Value"}
             />
-            {form.values.dropType === "Video" && (
-              <InputField
-                label={"Video Url"}
-                form={form}
-                validateName={"videoURL"}
-              />
-            )}
-            {form.values.dropType === "Quiz" && (
-              <>
-                <InputField
-                  label={"Enter Question"}
-                  form={form}
-                  validateName={"question"}
-                />
-                <SimpleGrid cols={{ base: 2, lg: 1 }}>
-                  <InputField
-                    label={"Option 1"}
-                    form={form}
-                    validateName={"answer1"}
-                    rightSection={
-                      <Checkbox
-                        {...form.getInputProps("isCorrect1")}
-                        {...form.getInputProps("isCorrect1")}
-                      />
-                    }
-                  />
-                  <InputField
-                    label={"Option 2"}
-                    form={form}
-                    validateName={"answer2"}
-                    rightSection={
-                      <Checkbox {...form.getInputProps("isCorrect2")} />
-                    }
-                  />
-                  <InputField
-                    label={"Option 3"}
-                    form={form}
-                    validateName={"answer3"}
-                    rightSection={
-                      <Checkbox {...form.getInputProps("isCorrect3")} />
-                    }
-                  />
-                  <InputField
-                    label={"Option 4"}
-                    form={form}
-                    validateName={"answer4"}
-                    rightSection={
-                      <Checkbox {...form.getInputProps("isCorrect4")} />
-                    }
-                  />
-                </SimpleGrid>
-              </>
-            )}
+            <InputField
+              label={"Invitation link"}
+              form={form}
+              validateName={"Link"}
+            />
             <Flex gap="md">
               <DateInput
                 label="Expiry Date"
@@ -339,23 +242,23 @@ const Drop = () => {
                 withAsterisk
                 style={{ width: "50%" }}
                 minDate={new Date()}
-                {...form.getInputProps("expirationDate")}
+                {...form.getInputProps("ExpireDate")}
               />
               <TimeInput
                 label="Expiry Time"
                 withAsterisk
                 style={{ flex: 1 }}
-                {...form.getInputProps("expirationTime")}
+                {...form.getInputProps("ExpireTime")}
               />
             </Flex>
             <Flex justify={"space-between"} gap="md">
               <Button
                 label={"Generate Offer"}
-                primary={false}
                 onClick={generateOffers}
                 style={{ flex: 1 }}
               />
               <Button
+                primary={false}
                 label={"Drop Offer"}
                 style={{ flex: 1 }}
                 type={"submit"}

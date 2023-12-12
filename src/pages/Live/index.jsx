@@ -50,7 +50,7 @@ const Live = () => {
   }, []);
 
   const { status } = useQuery(
-    "fetchDrops",
+    "fetchOffers",
     () => {
       return axios.get(backendUrl + "/offers/list", {
         // headers: {
