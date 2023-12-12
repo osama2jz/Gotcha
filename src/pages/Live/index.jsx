@@ -70,7 +70,35 @@ const Live = () => {
             },
           };
         });
-        setMarkers(newData);
+        setMarkers([...markers, ...newData]);
+      },
+    }
+  );
+  const { status: ff } = useQuery(
+    "fetchOffers1",
+    () => {
+      return axios.get(
+        backendUrl + "/offers/list?id=643e1fd2a9b2db001403539b",
+        {
+          // headers: {
+          //   authorization: `${user.accessToken}`,
+          // },
+        }
+      );
+    },
+    {
+      onSuccess: (res) => {
+        const data = res.data.data;
+        let newData = data.map((obj) => {
+          return {
+            label: obj.Name,
+            coords: {
+              lat: obj.Location.coordinates[1],
+              lng: obj.Location.coordinates[0],
+            },
+          };
+        });
+        setMarkers([...markers, ...newData]);
       },
     }
   );
