@@ -65,8 +65,8 @@ const Live = () => {
           return {
             label: obj.Name,
             coords: {
-              lat: obj.Location.coordinates[0],
-              lng: obj.Location.coordinates[1],
+              lat: obj.Location.coordinates[1],
+              lng: obj.Location.coordinates[0],
             },
           };
         });
