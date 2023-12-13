@@ -33,7 +33,7 @@ const Settings = () => {
   });
   const handleChangeDetails = useMutation(
     async (values) => {
-      return axios.patch(
+      return axios.post(
         backendUrl + `/sponsors/updateDetailsSettings`,
         values,
         {
@@ -67,7 +67,7 @@ const Settings = () => {
   });
   const handleChangeCredentials = useMutation(
     async (values) => {
-      return axios.patch(backendUrl + `/sponsors/updateCredentials`, values, {
+      return axios.post(backendUrl + `/sponsors/updateCredentials`, values, {
         headers: {
           authorization: `${user.accessToken}`,
         },

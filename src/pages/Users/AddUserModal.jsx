@@ -5,7 +5,7 @@ import { useDisclosure } from "@mantine/hooks";
 import InputField from "../../components/general/InputField";
 import SelectMenu from "../../components/general/SelectMenu";
 import { useForm } from "@mantine/form";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { backendUrl } from "../../constants";
 import toast from "react-hot-toast";
@@ -13,6 +13,7 @@ import { UserContext } from "../../context";
 import { Pencil } from "tabler-icons-react";
 
 const AddUserModal = ({ edit = false, data }) => {
+  const queryClient = useQueryClient();
   const { user } = useContext(UserContext);
   const [opened, { toggle }] = useDisclosure(false);
 
@@ -23,7 +24,6 @@ const AddUserModal = ({ edit = false, data }) => {
       Password: "",
       FullName: "",
       Gender: "",
-      Password: "",
       YearOfBirth: null,
     },
 
@@ -37,17 +37,18 @@ const AddUserModal = ({ edit = false, data }) => {
   const handleAddUser = useMutation(
     async (values) => {
       let link = backendUrl + "/users";
-      if (edit) link = link + `/updateProfile/${data?._id}`;
-      else link = link + "/signup";
-      return axios.patch(link, values, {
-        headers: {
-          authorization: `${user.accessToken}`,
-        },
-      });
+      if (edit) {
+        link = link + `/updateProfile/${data?._id}`;
+        return axios.patch(link, values, {});
+      } else {
+        link = link + "/signup";
+        return axios.post(link, values, {});
+      }
     },
     {
       onSuccess: (res) => {
         toast.success(res.data.message);
+        queryClient.invalidateQueries("fetchUsers");
         toggle();
       },
       onError: (err) => {
@@ -115,7 +116,11 @@ const AddUserModal = ({ edit = false, data }) => {
                 variant="outline"
                 bg="gray"
               />
-              <Button label={edit ? "Update" : "Register"} type={"submit"} />
+              <Button
+                label={edit ? "Update" : "Register"}
+                type={"submit"}
+                loading={handleAddUser.isLoading}
+              />
             </Group>
           </Stack>
         </form>

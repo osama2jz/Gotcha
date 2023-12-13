@@ -17,11 +17,7 @@ const Claimed = () => {
   const { status } = useQuery(
     "fetchClaimed",
     () => {
-      return axios.get(backendUrl + "/drops/claimed", {
-        headers: {
-          authorization: `${user.accessToken}`,
-        },
-      });
+      return axios.get(backendUrl + "/offer-claimed/list", {});
     },
     {
       onSuccess: (res) => {
@@ -35,26 +31,23 @@ const Claimed = () => {
   );
   const filteredItems = data.filter((item) => {
     return (
-      item?.dropName?.toLowerCase().includes(search.toLowerCase()) ||
-      item?.park?.name?.toLowerCase().includes(search.toLowerCase())
+      item?.Value === parseInt(search) ||
+      item?.ClaimedBy?.Email?.toLowerCase().includes(search.toLowerCase())
     );
   });
   return (
     <Box bg="white" style={{ borderRadius: "5px" }}>
-      <PageHeader
-        title={"Claimed"}
-        subTitle={"View all of your claimed drops"}
-      />
+      <PageHeader title={"Claimed"} />
       <Flex gap="xl" my="md" px="md">
         <InputField
-          placeholder={"Search Drop or Park here..."}
+          placeholder={"Search Email or Value here"}
           style={{ flex: 1 }}
           leftIcon={"search"}
           onChange={(e) => setSearch(e.target.value)}
         />
         <Button primary={false} label={"Clear"} onClick={() => setOpen(true)} />
       </Flex>
-      <Box p='md'>
+      <Box p="md">
         <DataGrid
           data={filteredItems}
           columns={Columns}

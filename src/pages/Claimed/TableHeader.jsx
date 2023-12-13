@@ -1,52 +1,68 @@
 import { Text } from "@mantine/core";
+import Button from "../../components/general/Button";
+import Settle from "./Settle";
 
 export const Columns = [
   {
-    name: "Sr No.",
-    selector: (row) => row.serialNo,
-    width: "120px",
-    sortable: true,
-  },
-  {
-    name: "Offer Name",
-    selector: (row) => row.dropName,
+    name: "Sponsor",
+    selector: (row) => row.OfferedBy.BusinessName,
     width: "200px",
     sortable: true,
   },
   {
-    name: "Park Name",
-    selector: (row) => row.park.name,
+    name: "Name",
+    selector: (row) => row.Name,
     width: "200px",
     sortable: true,
   },
   {
     name: "Claimed By",
-    selector: (row) => row.claimedBy?.fullName,
+    selector: (row) => row.ClaimedBy?.FullName,
     sortable: true,
     // center: true,
     width: "200px",
+    cell: (row) => (
+      <Text>
+        {row.ClaimedBy?.FullName +
+          " | " +
+          row.ClaimedBy?.Email +
+          " | " +
+          row.ClaimedBy?.AccountNumber +
+          " | " +
+          row.ClaimedBy?.BSB}
+      </Text>
+    ),
   },
   {
-    name: "Drop Coins",
-    selector: (row) => row.dropCoins,
+    name: "Value",
+    selector: (row) => row.Value,
     sortable: true,
     // center: true,
     width: "150px",
   },
   {
-    name: "Claimed Date",
-    selector: (row) => row.createdAt,
+    name: "Date",
+    selector: (row) => row.CreationTimestamp,
     sortable: true,
     center: true,
     width: "200px",
-    cell: (row) => <Text>{new Date(row.createdAt).toLocaleDateString()}</Text>,
+    cell: (row) => (
+      <Text>{new Date(row.CreationTimestamp).toLocaleDateString()}</Text>
+    ),
   },
   {
-    name: "Claimed Time",
-    selector: (row) => row.createdAt,
+    name: "Time",
+    selector: (row) => row.CreationTimestamp,
     sortable: true,
     center: true,
     width: "200px",
-    cell: (row) => <Text>{new Date(row.createdAt).toLocaleTimeString()}</Text>,
+    cell: (row) => (
+      <Text>{new Date(row.CreationTimestamp).toLocaleTimeString()}</Text>
+    ),
+  },
+  {
+    name: "Action",
+    selector: null,
+    cell: (row) => <Settle id={row._id} />,
   },
 ];
