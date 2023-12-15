@@ -36,12 +36,22 @@ export const Columns = (onHandleStatus, advanced = false) => [
     ),
   },
   {
+    name: "Premium User",
+    selector: (row) => row.PurchasedPackage,
+    sortable: true,
+    center: true,
+    width: "200px",
+    cell: (row) => <Text>{row.PurchasedPackage ? "Yes" : "No"}</Text>,
+  },
+  {
     name: "Status",
     selector: (row) => row.IsActive,
     center: true,
     width: "200px",
     cell: (row) => (
-      <Badge bg={row.IsActive?"green":'red'}>{row.IsActive ? "Active" : "Inactive"}</Badge>
+      <Badge bg={row.IsActive ? "green" : "red"}>
+        {row.IsActive ? "Active" : "Inactive"}
+      </Badge>
     ),
   },
   {
