@@ -19,10 +19,26 @@ export const Columns = (onHandleStatus, advanced = false) => [
     width: "230px",
   },
   {
+    name: "Account No.",
+    selector: (row) => row.AccountNumber,
+    sortable: true,
+    center: true,
+    width: "170px",
+    cell: (row) => <Text>{row?.AccountNumber || "N/A"}</Text>,
+  },
+  {
+    name: "BSB",
+    selector: (row) => row?.BSB,
+    sortable: true,
+    center: true,
+    width: "150px",
+    cell: (row) => <Text>{row?.BSB || "N/A"}</Text>,
+  },
+  {
     name: "Total Coins",
     selector: (row) => row.TotalCoin,
     sortable: true,
-    // center: true,
+    center: true,
     width: "160px",
   },
   {
@@ -37,11 +53,11 @@ export const Columns = (onHandleStatus, advanced = false) => [
   },
   {
     name: "Premium User",
-    selector: (row) => row.PurchasedPackage,
+    selector: (row) => row.PurchasePackage,
     sortable: true,
     center: true,
     width: "200px",
-    cell: (row) => <Text>{row.PurchasedPackage ? "Yes" : "No"}</Text>,
+    cell: (row) => <Text>{row.PurchasePackage ? "Yes" : "No"}</Text>,
   },
   {
     name: "Status",

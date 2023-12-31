@@ -5,7 +5,7 @@ import Settle from "./Settle";
 export const Columns = [
   {
     name: "Sponsor",
-    selector: (row) => row.OfferedBy.BusinessName,
+    selector: (row) => row.OfferedBy?.BusinessName,
     width: "200px",
     sortable: true,
   },
